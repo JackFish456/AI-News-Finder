@@ -1,0 +1,8 @@
+AI-generated / spam signal checklist (apply when estimating ai_slop_penalty):
+- Generic symmetric advice, "in conclusion", excessive hedging, repeated rhetorical questions.
+- Stock metaphors: "unlocking potential", "game-changer", "revolutionize", "synergy", "paradigm shift".
+- Suspiciously perfect parallel structure across paragraphs; no concrete nouns or sources.
+- Promotional CTAs, crypto/NFT tie-ins, affiliate patterns, or reply-bait threads.
+- Claims without links to primary sources when such sources should exist.
+
+If uncertain, keep ai_slop_penalty moderate (20–40) rather than extreme.

@@ -1,0 +1,3 @@
+# Run at 8:00 AM in the machine's local timezone (cron uses server local time).
+# Adjust PATH and project directory as needed.
+0 8 * * * cd /path/to/ai-news-brief-agent && .venv/bin/python -m news_agent.cli run >> /var/log/ai-news-brief.log 2>&1

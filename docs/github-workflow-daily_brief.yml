@@ -1,0 +1,48 @@
+# Copy to .github/workflows/daily_brief.yml after your PAT has the `workflow` scope (or use GCM PAT login with workflow).
+# Scheduled daily AI news brief (GitHub Actions uses UTC).
+# For 8:00 AM US Central (approx): 8 CST ≈ 14:00 UTC standard / 13:00 UTC daylight — adjust as needed.
+name: Daily AI News Brief
+
+on:
+  schedule:
+    - cron: "0 14 * * *" # 14:00 UTC daily — change to match your local 8:00 AM
+  workflow_dispatch: {}
+
+jobs:
+  run-brief:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Run pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
+          DATABASE_URL: sqlite:///./data/news_agent.sqlite3
+          REDDIT_ENABLED: "false"
+          TWITTER_ENABLED: "false"
+        run: python -m news_agent.cli run
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-brief
+          path: outputs/
+
+      # Optional: commit reports to a branch — uncomment if you want auto-committed markdown
+      # - name: Commit reports
+      #   run: |
+      #     git config user.name github-actions
+      #     git config user.email github-actions@github.com
+      #     git add outputs/
+      #     git commit -m "chore: daily brief" || echo "no changes"
+      #     git push

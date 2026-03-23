@@ -1,0 +1,31 @@
+# Minimal config for offline pipeline smoke tests (no live RSS keys required)
+source_weights:
+  default: 1.0
+
+prefilter:
+  min_text_length: 10
+  max_text_length: 32000
+  block_url_patterns: []
+  fluff_keyword_hits_to_reject: 99
+  fluff_keywords: []
+  slop_phrases: []
+
+dedupe:
+  cluster_merge_threshold: 0.86
+  max_items_per_batch_embed: 64
+
+scoring:
+  min_substance_score: 0
+  min_credibility_score: 0
+  max_hype_penalty_before_hard_reject: 200
+  max_ai_slop_penalty_before_hard_reject: 200
+  min_final_score: 0
+  cache_ttl_seconds: 86400
+
+report:
+  top_stories: 7
+  max_top_stories_per_source_id: 2
+
+rss_feeds: []
+reddit_subreddits: []
+twitter_queries: []

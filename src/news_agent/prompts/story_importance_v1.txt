@@ -1,0 +1,8 @@
+(Optional standalone reference — normally merged into post_quality_v1.)
+
+Classify story importance for AI industry readers:
+- Tier A: major model/API releases, large funding rounds, safety incidents, regulatory actions, landmark papers with artifacts.
+- Tier B: credible product updates, meaningful benchmarks, notable partnerships, serious research without huge splash.
+- Tier C: commentary, minor tools, incremental updates — only keep if unusually insightful.
+
+If the item is Tier C and lacks substance, prefer decision="drop".

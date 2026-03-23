@@ -1,0 +1,119 @@
+# Source weights applied to final_score after LLM scores (multiplicative boost)
+source_weights:
+  rss_reuters: 1.05
+  rss_techcrunch: 1.0
+  rss_theverge: 0.98
+  rss_venturebeat: 0.97
+  rss_mit_tech_review: 1.0
+  rss_openai: 1.02
+  rss_google_ai: 1.0
+  rss_huggingface: 0.98
+  rss_microsoft_research: 1.0
+  rss_nvidia_blog: 0.97
+  rss_arxiv: 0.96
+  rss_ars_technica: 0.99
+  rss_aws: 0.98
+  rss_nature_mach_intel: 0.97
+  reddit: 0.92
+  twitter: 0.88
+  default: 1.0
+
+# Heuristic prefilter (before LLM) — reduces cost
+prefilter:
+  min_text_length: 40
+  max_text_length: 32000
+  block_url_patterns:
+    - "utm_source="
+  fluff_keyword_hits_to_reject: 4
+  fluff_keywords:
+    - "moon"
+    - "lambo"
+    - "just dropped"
+    - "you won't believe"
+    - "thread 🧵"
+    - "breaking:"
+  slop_phrases:
+    - "as an ai language model"
+    - "delve into"
+    - "landscape of"
+    - "in today's digital age"
+
+# Dedupe / clustering (embeddings)
+dedupe:
+  # Greedy merge threshold for embedding (or pseudo-embedding) cosine similarity
+  cluster_merge_threshold: 0.86
+  max_items_per_batch_embed: 64
+
+# LLM scoring thresholds (0–100 scales in prompts unless noted)
+scoring:
+  min_substance_score: 35
+  min_credibility_score: 25
+  max_hype_penalty_before_hard_reject: 85
+  max_ai_slop_penalty_before_hard_reject: 85
+  min_final_score: 40
+  cache_ttl_seconds: 86400
+
+# Report
+report:
+  # Main digest: only the N highest-signal stories in the Word/Markdown output
+  top_stories: 7
+  # After the brief model runs, cap how many digest slots each ingest source_id may occupy; backfills from other clusters when possible
+  max_top_stories_per_source_id: 2
+
+# RSS feeds (add more freely)
+rss_feeds:
+  - id: rss_reuters_tech
+    url: "https://feeds.reuters.com/reuters/technologyNews"
+    weight_key: rss_reuters
+  - id: rss_techcrunch_ai
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    weight_key: rss_techcrunch
+  - id: rss_theverge_ai
+    url: "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml"
+    weight_key: rss_theverge
+  - id: rss_venturebeat_ai
+    url: "https://venturebeat.com/ai/feed/"
+    weight_key: rss_venturebeat
+  - id: rss_mit_tech_review_ai
+    url: "https://www.technologyreview.com/topic/artificial-intelligence/feed/"
+    weight_key: rss_mit_tech_review
+  - id: rss_openai_news
+    url: "https://openai.com/news/rss.xml"
+    weight_key: rss_openai
+  - id: rss_google_blog_ai
+    url: "https://blog.google/technology/ai/rss/"
+    weight_key: rss_google_ai
+  - id: rss_huggingface_blog
+    url: "https://huggingface.co/blog/feed.xml"
+    weight_key: rss_huggingface
+  - id: rss_microsoft_research
+    url: "https://www.microsoft.com/en-us/research/feed/"
+    weight_key: rss_microsoft_research
+  - id: rss_nvidia_ai
+    url: "https://blogs.nvidia.com/feed/"
+    weight_key: rss_nvidia_blog
+  - id: rss_arxiv_cs_ai
+    url: "https://export.arxiv.org/rss/cs.AI"
+    weight_key: rss_arxiv
+  - id: rss_arxiv_cs_lg
+    url: "https://export.arxiv.org/rss/cs.LG"
+    weight_key: rss_arxiv
+  - id: rss_ars_technica_ai
+    url: "https://arstechnica.com/tag/artificial-intelligence/feed/"
+    weight_key: rss_ars_technica
+  - id: rss_aws_ml_blog
+    url: "https://aws.amazon.com/blogs/machine-learning/feed/"
+    weight_key: rss_aws
+  - id: rss_nature_machine_intelligence
+    url: "https://www.nature.com/natmachintell.rss"
+    weight_key: rss_nature_mach_intel
+
+# Reddit subreddits (requires REDDIT_ENABLED + OAuth)
+reddit_subreddits:
+  - MachineLearning
+  - LocalLLaMA
+  - singularity
+
+# Twitter search queries (requires TWITTER_ENABLED)
+twitter_queries:
+  - "(OpenAI OR Anthropic OR Gemini) lang:en -is:retweet"
