@@ -72,16 +72,32 @@ def _cluster_score(c: StoryCluster, items_by_id: dict[str, ContentItem]) -> floa
 
 
 def _report_limits_instruction(report_cfg: dict[str, Any]) -> str:
-    top = max(1, int(report_cfg.get("top_stories", 7)))
+    min_top, top = _story_bounds(report_cfg)
     return (
         "\n\nOutput limits (strict — do not exceed):\n"
+        f"- top_stories: at least {min_top} items when available\n"
         f"- top_stories: at most {top} items, ranked most important first\n"
     )
 
 
+def _story_bounds(report_cfg: dict[str, Any]) -> tuple[int, int]:
+    try:
+        top = int(report_cfg.get("top_stories", 7))
+    except (TypeError, ValueError):
+        top = 7
+    top = max(1, top)
+
+    try:
+        min_top = int(report_cfg.get("min_top_stories", 1))
+    except (TypeError, ValueError):
+        min_top = 1
+    min_top = max(1, min(min_top, top))
+    return (min_top, top)
+
+
 def apply_report_limits(brief: DailyBriefReport, report_cfg: dict[str, Any]) -> DailyBriefReport:
     """Trim section sizes after LLM output so readers are not overwhelmed."""
-    top = max(1, int(report_cfg.get("top_stories", 7)))
+    _, top = _story_bounds(report_cfg)
     return brief.model_copy(
         update={
             "top_stories": brief.top_stories[:top],
@@ -183,7 +199,7 @@ def apply_source_diversity_cap(
     if per_source_cap <= 0:
         return brief
 
-    top_lim = max(1, int(report_cfg.get("top_stories", 7)))
+    min_lim, top_lim = _story_bounds(report_cfg)
     clusters_by_id = {c.cluster_id: c for c in clusters}
     canonical_url_to_cluster_id: dict[str, str] = {}
     headline_to_cluster_id: dict[str, str] = {}
@@ -236,6 +252,16 @@ def apply_source_diversity_cap(
         used_cluster_ids.add(c.cluster_id)
         counts[bucket] += 1
 
+    # Ensure a minimum digest size when enough clusters exist. If diversity caps
+    # are too restrictive, relax the cap only for the final few slots.
+    for c in cluster_rank:
+        if len(selected) >= min_lim:
+            break
+        if c.cluster_id in used_cluster_ids:
+            continue
+        selected.append(_backfill_brief_entry(c, items_by_id))
+        used_cluster_ids.add(c.cluster_id)
+
     return brief.model_copy(update={"top_stories": selected})
 
 
@@ -247,7 +273,7 @@ def generate_daily_brief(
     report_cfg: dict[str, Any] | None = None,
 ) -> DailyBriefReport:
     report_cfg = report_cfg or {}
-    top_lim = max(1, int(report_cfg.get("top_stories", 7)))
+    _, top_lim = _story_bounds(report_cfg)
 
     client = OpenAiJsonClient(settings, repo=repo, cache_ttl_seconds=3600)
     user = (
@@ -290,7 +316,7 @@ def _stub_brief(
     items_by_id: dict[str, ContentItem],
     report_cfg: dict[str, Any],
 ) -> DailyBriefReport:
-    top_n = max(1, int(report_cfg.get("top_stories", 7)))
+    _, top_n = _story_bounds(report_cfg)
     top: list[BriefEntry] = []
     for c in clusters[:top_n]:
         canon = items_by_id.get(c.canonical_item_id)

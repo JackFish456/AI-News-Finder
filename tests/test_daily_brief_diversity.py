@@ -146,3 +146,70 @@ def test_diversity_cap_maps_entry_without_related_cluster_ids_via_link() -> None
     # Second item from same source should be capped and replaced via backfill from feed_b.
     assert out.top_stories[1].headline == "Title b"
     assert out.top_stories[1].related_cluster_ids == ["c2"]
+
+
+def test_diversity_cap_relaxes_to_meet_minimum_story_count() -> None:
+    a = _item("a", "feed_a", 90.0)
+    b = _item("b", "feed_a", 80.0)
+    c = _item("c", "feed_b", 70.0)
+    d = _item("d", "feed_b", 60.0)
+    items_by_id = {x.id: x for x in (a, b, c, d)}
+    clusters = [
+        StoryCluster(
+            cluster_id="c1",
+            canonical_item_id="a",
+            member_item_ids=["a"],
+            supporting_urls=["https://example.com/a"],
+            headline_hint="A",
+            items=[a],
+        ),
+        StoryCluster(
+            cluster_id="c2",
+            canonical_item_id="b",
+            member_item_ids=["b"],
+            supporting_urls=["https://example.com/b"],
+            headline_hint="B",
+            items=[b],
+        ),
+        StoryCluster(
+            cluster_id="c3",
+            canonical_item_id="c",
+            member_item_ids=["c"],
+            supporting_urls=["https://example.com/c"],
+            headline_hint="C",
+            items=[c],
+        ),
+        StoryCluster(
+            cluster_id="c4",
+            canonical_item_id="d",
+            member_item_ids=["d"],
+            supporting_urls=["https://example.com/d"],
+            headline_hint="D",
+            items=[d],
+        ),
+    ]
+    brief = DailyBriefReport(
+        top_stories=[
+            BriefEntry(
+                headline="HA",
+                why_it_matters="",
+                summary="",
+                related_cluster_ids=["c1"],
+            ),
+            BriefEntry(
+                headline="HB",
+                why_it_matters="",
+                summary="",
+                related_cluster_ids=["c2"],
+            ),
+        ]
+    )
+
+    report_cfg = {
+        "top_stories": 7,
+        "min_top_stories": 4,
+        "max_top_stories_per_source_id": 1,
+    }
+    out = apply_source_diversity_cap(brief, clusters, items_by_id, report_cfg)
+    assert len(out.top_stories) == 4
+    assert [e.related_cluster_ids[0] for e in out.top_stories] == ["c1", "c3", "c2", "c4"]

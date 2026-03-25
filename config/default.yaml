@@ -57,6 +57,8 @@ scoring:
 report:
   # Main digest: only the N highest-signal stories in the Word/Markdown output
   top_stories: 7
+  # Try to keep at least this many stories when enough candidates are available
+  min_top_stories: 4
   # After the brief model runs, cap how many digest slots each ingest source_id may occupy; backfills from other clusters when possible
   max_top_stories_per_source_id: 2
 
